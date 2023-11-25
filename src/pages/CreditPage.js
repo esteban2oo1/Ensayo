@@ -1,14 +1,14 @@
+import React, { useState } from 'react';
+ // Assuming the CreditForm component is in the same directory as the CreditPage component.
+
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
-// @mui
 import {
   Card,
   Table,
   Stack,
   Paper,
-  Avatar,
   Button,
   Popover,
   Checkbox,
@@ -22,27 +22,23 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
-// components
-import Label from '../components/label';
-import Iconify from '../components/iconify';
+import Label from '../components/label'; // Asegúrate de tener un componente Label definido
+import Iconify from '../components/iconify'; 
 import Scrollbar from '../components/scrollbar';
-// sections
-import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-import USERLIST from '../_mock/user';
 
-// ----------------------------------------------------------------------
+import { CreditListHead, CreditListToolbar,} from '../sections/@dashboard/credit'; 
+import CreditForm from '../sections/@dashboard/credit/CreditForm'; 
+import PaymentForm from '../sections/@dashboard/credit/PaymentForm';// Replace './CreditForm' with the actual path to your CreditForm component.
+// Asegúrate de importar CreditListHead y CreditListToolbar correctamente.
+import CREDITLIST from '../_mock/credit'; // Supongo que tienes un archivo con datos simulados de créditos.
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Nombre', alignRight: false },
-  { id: 'company', label: 'Empresa', alignRight: false },
-  { id: 'role', label: 'Rol', alignRight: false },
-  { id: 'isVerified', label: 'Verificado', alignRight: false },
-  { id: 'status', label: 'Estado', alignRight: false },
+  { id: 'applicantName', label: 'Applicant Name', alignRight: false },
+  { id: 'amount', label: 'Amount', alignRight: false },
+  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'applicationDate', label: 'Application Date', alignRight: false },
   { id: '' },
 ];
-
-// ----------------------------------------------------------------------
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -68,24 +64,19 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_credit) => _credit.applicantName.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function UserPage() {
-  const [open, setOpen] = useState(null);
-
+export default function CreditPage() {
+  
+    const [open, setOpen] = useState(null);
   const [page, setPage] = useState(0);
-
   const [order, setOrder] = useState('asc');
-
   const [selected, setSelected] = useState([]);
-
-  const [orderBy, setOrderBy] = useState('name');
-
+  const [orderBy, setOrderBy] = useState('applicantName');
   const [filterName, setFilterName] = useState('');
-
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const handleOpenMenu = (event) => {
@@ -101,21 +92,38 @@ export default function UserPage() {
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
-
+  
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = CREDITLIST.map((n) => n.applicantName);
       setSelected(newSelecteds);
       return;
     }
     setSelected([]);
   };
+  const [isCreditFormOpen, setIsCreditFormOpen] = useState(false);
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
+  const openCreditForm = () => {
+    setIsCreditFormOpen(true);
+  };
+  
+  const closeCreditForm = () => {
+    setIsCreditFormOpen(false);
+  };
+  const [isPaymentFormOpen, setIsPaymentFormOpen] = useState(false);
+
+  const openPaymentForm = () => {
+    setIsPaymentFormOpen(true);
+  };
+
+  const closePaymentForm = () => {
+    setIsPaymentFormOpen(false);
+  };
+  const handleClick = (event, applicantName) => {
+    const selectedIndex = selected.indexOf(applicantName);
     let newSelected = [];
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
+      newSelected = newSelected.concat(selected, applicantName);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -140,72 +148,76 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CREDITLIST.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const filteredCredits = applySortFilter(CREDITLIST, getComparator(order, orderBy), filterName);
 
-  const isNotFound = !filteredUsers.length && !!filterName;
+  const isNotFound = !filteredCredits.length && !!filterName;
 
   return (
     <>
       <Helmet>
-        <title> User | Minimal UI </title>
+        <title>Credit | Your App Title</title>
       </Helmet>
 
       <Container>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4" gutterBottom>
-            Usuario
-          </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-            Nuevo Usuario
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+  <Stack direction="row" alignItems="center" justifyContent="flex-end">
+          
+          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={openCreditForm}>
+          New Credit
           </Button>
+
+          </Stack> 
         </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+  <Stack direction="row" alignItems="center" justifyContent="flex-end">
+    <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={openPaymentForm}>
+      New Payment
+    </Button>
+  </Stack>
+</Stack>
 
         <Card>
-          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          <CreditListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
-                <UserListHead
+                <CreditListHead
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
+                  rowCount={CREDITLIST.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified } = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
+                  {filteredCredits.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                    const { id, applicantName, amount, status, applicationDate } = row;
+                    const selectedCredit = selected.indexOf(applicantName) !== -1;
 
                     return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedCredit}>
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
+                          <Checkbox checked={selectedCredit} onChange={(event) => handleClick(event, applicantName)} />
                         </TableCell>
 
                         <TableCell component="th" scope="row" padding="none">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                          </Stack>
+                          {applicantName}
                         </TableCell>
 
-                        <TableCell align="left">{company}</TableCell>
+                        <TableCell align="left">{amount}</TableCell>
 
-                        <TableCell align="left">{role}</TableCell>
-
-                        <TableCell align="left">{isVerified ? 'Si' : 'No'}</TableCell>
-
+                        <TableCell align="left">{applicationDate}</TableCell>
+                        
+    {   /*  aqui cambio en color aplication date este era el eror   */  }                       
                         <TableCell align="left">
+                            
                           <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label>
                         </TableCell>
+                     
 
                         <TableCell align="right">
                           <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
@@ -252,7 +264,7 @@ export default function UserPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={CREDITLIST.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -260,6 +272,60 @@ export default function UserPage() {
           />
         </Card>
       </Container>
+
+
+      
+    {/* Conditional rendering of CreditForm */}
+    {isCreditFormOpen && (
+
+<div style={{
+  position: 'absolute',
+  zIndex: 1000,
+  top: '50%',   // Centra verticalmente en relación con el contenedor principal
+  left: '50%',  // Centra horizontalmente en relación con el contenedor principal
+  transform: 'translate(-50%, -50%)',  // Centra el contenido
+  width: '500px',  // Ajusta el ancho deseado
+  padding: '20px',  // Añade un espacio de relleno alrededor del formulario
+  backgroundColor: 'white',  // Fondo blanco
+  borderRadius: '8px',  // Bordes redondeados
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',  // Sombra ligera
+}}>
+    <CreditForm
+      onClose={closeCreditForm}
+      onCreditCreate={() => {
+        // Add logic to create a new credit here.
+        // After creating the credit, you can close the form by calling `closeCreditForm()`.
+      }}
+      sx={{ backgroundColor: 'white' }}
+    />
+  </div>
+)}
+ {/* Conditional rendering of PaymentForm */}
+ {isPaymentFormOpen && (
+        <div style={{
+          position: 'absolute',
+          zIndex: 1000,
+          top: '50%',   // Centra verticalmente en relación con el contenedor principal
+          left: '50%',  // Centra horizontalmente en relación con el contenedor principal
+          transform: 'translate(-50%, -50%)',  // Centra el contenido
+          width: '500px',  // Ajusta el ancho deseado
+          padding: '20px',  // Añade un espacio de relleno alrededor del formulario
+          backgroundColor: 'white',  // Fondo blanco
+          borderRadius: '8px',  // Bordes redondeados
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',  // Sombra ligera
+        }}>
+          <PaymentForm
+            onClose={closePaymentForm}
+            onPaymentCreate={() => {
+              // Agrega la lógica para crear un nuevo pago aquí.
+              // Después de crear el pago, puedes cerrar el formulario llamando a `closePaymentForm()`.
+            }}
+          />
+        </div>
+      )}
+
+
+
 
       <Popover
         open={Boolean(open)}
@@ -281,12 +347,12 @@ export default function UserPage() {
       >
         <MenuItem>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Editar
+          Edit
         </MenuItem>
 
         <MenuItem sx={{ color: 'error.main' }}>
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Eliminar
+          Delete
         </MenuItem>
       </Popover>
     </>
